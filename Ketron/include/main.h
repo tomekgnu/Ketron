@@ -54,8 +54,10 @@ typedef struct inputStates
 #define SOUND_SELECT_RIGHT		2
 #define FAMILY_SELECT_LEFT		3
 #define SOUND_SELECT_LEFT		4
+
 #define PRESET_SELECT			5
 #define SOUND_SELECT			6
+
 // bank numbers
 #define NUM_OF_BANKS		5
 #define BANKA				0

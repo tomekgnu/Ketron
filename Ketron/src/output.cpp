@@ -32,7 +32,7 @@ uint16_t OSFS::endOfEEPROM = 1024;
 
 static const char *presetNames[NUM_OF_PRESETS] = {"Preset A","Preset B","Preset C","Preset D","Preset E","Preset F"};
 static char lcdline[16];
-static char modes_right[5][8] =
+static char modes_right[7][8] =
 	{
 		{"Sound"},{"Family"},{"Instr."},{"Sound"},{"Sound"}
 	};
@@ -1238,8 +1238,8 @@ void showSplitPoint(byte data){
 	tft.text(lcdline,0,40);
 }
 
-void showScreenPart(uint8_t * family,uint8_t * program,uint8_t * bank,uint8_t mod,uint8_t hand){
-	showCurrentMode(mod,hand);
+void showScreenPart(uint8_t * family,uint8_t * program,uint8_t * bank,uint8_t mod,uint8_t hand,bool midiThru){
+	showCurrentMode(mod,hand,midiThru);
 	showFamilyName(family,hand,mod);
 	showInstrumentName(bank,program,hand,mod);
 }
@@ -1306,10 +1306,16 @@ void showInstrumentName(uint8_t *bank,uint8_t *prog,uint8_t hand,uint8_t current
 	
 }
 
-void showCurrentMode(uint8_t currentMode,uint8_t hand){	
+void showCurrentMode(uint8_t currentMode,uint8_t hand,bool midiThru){	
 	switch(hand){
 		case RIGHT:	tft.fillRect(0,0,ST7735_TFTHEIGHT,20,ST7735_RED);
 					tft.text(modes_right[currentMode],0,0);
+					tft.stroke(ST7735_YELLOW);
+					if(midiThru == true)
+						tft.text("Off",100,0);
+					else
+						tft.text("On",100,0);
+					tft.stroke(0,0,0);
 					break;
 		case LEFT:	tft.fillRect(0,60,ST7735_TFTHEIGHT,20,ST7735_RED);
 					tft.text(modes_left[currentMode],0,60);

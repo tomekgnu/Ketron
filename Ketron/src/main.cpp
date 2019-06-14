@@ -50,11 +50,12 @@ int main(void)
     setup();	// local setup	
 	
 	if(OSFS::checkLibVersion() == OSFS::result::UNFORMATTED){
+		OSFS::format();
 		tft.text("Not formatted",0,0);
 		while(1)
 			continue;
 	}
-	showCurrentMode(NONE_SELECT,RIGHT);	
+	showCurrentMode(NONE_SELECT,RIGHT,false);	
 	showFamilyName(0,RIGHT,NONE_SELECT);
 	showInstrumentName(0,0,RIGHT,NONE_SELECT);	
 	
@@ -156,17 +157,17 @@ void processEvents()
 						break;
 					}
 					currentMode = getNextMode(currentMode,split);
-					showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT);
+					showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT,midiThru);
 					if(split == true)
-						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT);							
+						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT,midiThru);							
 					break;				
 			case BUTTON1:
 					tft.background(ST7735_MAGENTA);
 					if(currentMode == PRESET_SELECT){
 						currentMode = NONE_SELECT;
-						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT);
+						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT,midiThru);
 						if(split == true)
-							showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT);
+							showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT,midiThru);
 						break;
 					}
 					split = false;
@@ -175,9 +176,9 @@ void processEvents()
 					_delay_ms(500);
 					getSplitNote(splitNote, split);
 					currentMode = NONE_SELECT;				
-					showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT);
+					showScreenPart(currentFamily,currentProgram,currentBank,currentMode,RIGHT,midiThru);
 					if(split == true)
-						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT);					
+						showScreenPart(currentFamily,currentProgram,currentBank,currentMode,LEFT,midiThru);					
 					break;
 			case BUTTON2:
 					if(currentMode == PRESET_SELECT){
@@ -189,13 +190,15 @@ void processEvents()
 					if(midiThru == false){
 						MIDI.sendControlChange(midi::BankSelect,0,1);
 						MIDI.turnThruOn();
-						midiThru = true;
+						midiThru = true;																
 					}
 					else{
 						MIDI.turnThruOff();
-						midiThru = false;
-						loadSounds(currentBank,currentProgram);
-					}
+						midiThru = false;						
+						loadSounds(currentBank,currentProgram);	
+										
+					}	
+					showCurrentMode(currentMode,RIGHT,midiThru);					
 					break;
 			case BUTTON3:
 					tft.background(ST7735_MAGENTA);
