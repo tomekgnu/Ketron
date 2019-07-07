@@ -85,10 +85,10 @@ PROGMEM const char bank_a[][16] =
 	{"Finger"},
 	{"Picked"},
 	{"Fretless"},
-	{"SlapBass"},
-	{"SlapBass"},
-	{"Synbas"},
-	{"Synbas"},
+	{"SlapBass1"},
+	{"SlapBass2"},
+	{"Synbas1"},
+	{"Synbas2"},
 	{"Violin"},
 	{"Viola"},
 	{"Cello"},
@@ -1428,7 +1428,6 @@ bool readPreset(uint8_t number,uint8_t * family,uint8_t *familyIndex,bool *split
 	OSFS::result res;
 	if(number >= NUM_OF_PRESETS)
 		return false;
-	tft.text(presetNames[number],0,0);
 	res = OSFS::getFile(presetNames[number],data);	
 	if(res != OSFS::result::NO_ERROR)
 		return false;
@@ -1477,13 +1476,16 @@ void showPresetList(uint8_t selected,uint8_t but){
 			index = selected - 1;
 			break;
 	}
+	
+	tft.fillRect(0,20 * selected,ST7735_TFTHEIGHT,20,ST7735_RED);
+	tft.text(presetNames[selected],0,20 * selected);
+	
 	// delete previous selection
 	if(but != NONE){
 		tft.fillRect(0,offset,ST7735_TFTHEIGHT,20,ST7735_MAGENTA);
 		tft.text(presetNames[index],0,offset);
 	}
 	
-	tft.fillRect(0,20 * selected,ST7735_TFTHEIGHT,20,ST7735_RED);
-	tft.text(presetNames[selected],0,20 * selected);
+	
 		
 }

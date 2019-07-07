@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+include\libraries\SoftwareSerial\src\SoftwareSerial.cpp
+
 src\core\abi.cpp
 
 src\core\CDC.cpp
@@ -53,4 +55,6 @@ src\core\WMath.cpp
 src\core\WString.cpp
 
 src\libraries\LiquidCrystal\src\LiquidCrystal.cpp
+
+src\libraries\SoftwareSerial\src\SoftwareSerial.cpp
 

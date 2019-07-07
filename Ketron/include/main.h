@@ -34,6 +34,8 @@ typedef struct inputStates
 #define TFT_DC			9
 #define TFT_RST			8
 
+// macro to determine midi output channel
+#define OUT_CHANNEL			(split == true && data1 < splitNote?2:1)
 // left-right constants
 #define LEFT				0
 #define RIGHT				1

@@ -12,14 +12,7 @@
 #include <MIDI.h>
 #include <TFT.h>
 #include <SPI.h>
-#include <DataFlash.h>
-#include <spi_flash.h>
 #include <OSFS.h>
-
-
-uint8_t csPin    = AT45_SS_PIN;
-uint8_t resetPin = AT45_RESET_PIN;
-uint8_t wpPin    = AT45_WP_PIN;
 
 uint8_t PIN_BTN0 = 2;
 uint8_t PIN_BTN1 = 3;
@@ -40,7 +33,7 @@ byte channel;
 // how many sounds there are in each family
 uint8_t family_sounds[NUM_OF_FAMILIES] = {35,25,35,18,78,64,36,48,52,35,39,57,47};
 TFT tft = TFT(TFT_CS, TFT_DC, TFT_RST);
-DataFlash dataflash;
+//DataFlash dataflash;
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 
@@ -71,10 +64,7 @@ int main(void)
 
 void setup()
 {
-	DataFlash::ID id;
 	SPI.begin();	
-	//dataflash.setup(csPin, resetPin, wpPin);	
-	//dataflash.begin();
 	
 	pinMode(PIN_BTN0, INPUT_PULLUP);
 	pinMode(PIN_BTN1, INPUT_PULLUP);
@@ -82,13 +72,6 @@ void setup()
 	pinMode(PIN_BTN3,INPUT_PULLUP);
 	pinMode(PIN_LED_GRN, OUTPUT);
 	pinMode(PIN_LED_RED, OUTPUT);
-	
-	//dataflash.readID(id);
-	//sFLASH_WriteBuffer(inbuff,4,10);
-	//sFLASH_ReadBuffer(outbuff,4,10);	
-	//my_spiffs_mount();
-	//SPIFFS_mounted(&fs);
-
 		
 	MIDI.begin(MIDI_CHANNEL_OMNI);
 	MIDI.turnThruOff();
@@ -110,10 +93,10 @@ void getSplitNote(byte &splitNote, bool &split)
 	}	
 }
 
-void loadSounds(uint8_t * currentBank, uint8_t * currentProgram)
+void loadSounds(uint8_t * currentBank, uint8_t * currentProgram,uint8_t hand,byte channel)
 {
-	MIDI.sendControlChange(midi::BankSelect,currentBank[RIGHT],1);
-	MIDI.sendProgramChange(currentProgram[RIGHT],1);
+	MIDI.sendControlChange(midi::BankSelect,currentBank[hand],channel);
+	MIDI.sendProgramChange(currentProgram[hand],channel);
 }
 
 void processEvents()
@@ -195,7 +178,9 @@ void processEvents()
 					else{
 						MIDI.turnThruOff();
 						midiThru = false;						
-						loadSounds(currentBank,currentProgram);	
+						loadSounds(currentBank,currentProgram,RIGHT,1);
+						if(split == true)
+							loadSounds(currentBank, currentProgram,LEFT,2);	
 										
 					}	
 					showCurrentMode(currentMode,RIGHT,midiThru);					
@@ -216,7 +201,8 @@ void processEvents()
 					}
 					else{
 						tft.background(ST7735_MAGENTA);
-						currentMode = PRESET_SELECT;						
+						currentMode = PRESET_SELECT;
+						loadPreset(currentPreset,currentFamily,currentFamilyIndex,currentBank,currentProgram,&split,&splitNote);						
 						showPresetList(currentPreset,NONE);
 					}
 					break;
@@ -229,20 +215,21 @@ void processEvents()
 			switch(currentMode){
 				case FAMILY_SELECT_RIGHT:	showFamilyName(currentFamily,RIGHT,currentMode); 
 											showInstrumentName(currentBank,currentProgram,RIGHT,currentMode);
+											loadSounds(currentBank, currentProgram,RIGHT,1);
 											break;
-				case SOUND_SELECT_RIGHT:	showInstrumentName(currentBank,currentProgram,RIGHT,currentMode);										 
+				case SOUND_SELECT_RIGHT:	showInstrumentName(currentBank,currentProgram,RIGHT,currentMode);
+											loadSounds(currentBank, currentProgram,RIGHT,1);										 
 											break;
 				case FAMILY_SELECT_LEFT:	showFamilyName(currentFamily,LEFT,currentMode);
 											showInstrumentName(currentBank,currentProgram,LEFT,currentMode);
+											loadSounds(currentBank, currentProgram,LEFT,2);
 											break;
 				case SOUND_SELECT_LEFT:		showInstrumentName(currentBank,currentProgram,LEFT,currentMode);
+											loadSounds(currentBank, currentProgram,LEFT,2);
 											break;
 				
 			}			
-			
-			loadSounds(currentBank, currentProgram);
-			
-			
+						
 		}
 		
 	}	// end of input		
@@ -255,22 +242,16 @@ void processEvents()
 		data2 = MIDI.getData2();
 		channel = MIDI.getChannel();
 		switch(MIDI.getType()){
-			case midi::ControlChange: MIDI.sendControlChange(data1,data2,channel);
-									  break;
-			case midi::NoteOn: 
-			if(split == true){ 
-				if(data1 < splitNote){
-					MIDI.sendControlChange(midi::BankSelect,currentBank[LEFT],1);
-					MIDI.sendProgramChange(currentProgram[LEFT],1);
-				}
-				else{
-					MIDI.sendControlChange(midi::BankSelect,currentBank[RIGHT],1);
-					MIDI.sendProgramChange(currentProgram[RIGHT],1);
-				}
-			}
-				MIDI.sendNoteOn(data1, data2,channel);
+			case midi::ControlChange: 
+				MIDI.sendControlChange(data1,data2,1);
+				if(split == true)
+					MIDI.sendControlChange(data1,data2,2);
 				break;
-			case midi::NoteOff: MIDI.sendNoteOff(data1, data2,channel);
+			case midi::NoteOn: 			
+				MIDI.sendNoteOn(data1, data2,OUT_CHANNEL);
+				break;
+			case midi::NoteOff: 
+				MIDI.sendNoteOff(data1, data2,OUT_CHANNEL);			
 				break;
 			
 		}
@@ -283,8 +264,8 @@ void processEvents()
 void loadPreset(uint8_t preset,uint8_t *family,uint8_t *famIndex,uint8_t *bank,uint8_t *prog,bool *sp,uint8_t *note){
 	if(readPreset(preset,family,famIndex,sp,note) == true){		
 		getBankProgram(family,famIndex,bank,prog);
-		loadSounds(bank,prog);		
-	}
-	else
-		tft.text("Failed:",0,0);
+		loadSounds(bank,prog,RIGHT,1);
+		if((*sp) == true)
+			loadSounds(bank,prog,LEFT,2);	
+	}	
 }

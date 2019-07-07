@@ -2,8 +2,6 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
-src\DataFlash.cpp
-
 src\input.cpp
 
 src\libraries\MIDI_Library\examples\SimpleSynth\noteList.cpp
@@ -25,6 +23,4 @@ src\libraries\TFT\src\utility\glcdfont.c
 src\main.cpp
 
 src\output.cpp
-
-src\spi_flash.cpp
 
